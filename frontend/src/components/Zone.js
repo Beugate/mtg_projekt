@@ -6,38 +6,43 @@ import api from '../services/api';
 const Zone = ({ zoneName, cards, gameId, onUpdate, className }) => {
   const [{ isOver }, drop] = useDrop({
     accept: 'card',
-    drop: async (item) => {
-      if (item.fromZone !== zoneName) {
-        try {
-          await api.moveCard(
-            gameId,
-            item.id,
-            item.fromZone,
-            zoneName
-          );
-          onUpdate();
-        } catch (error) {
-          console.error('Error moving card:', error);
-        }
+    drop: (item) => {
+      // Prevent dropping in same zone
+      if (item.fromZone === zoneName) {
+        console.log(`Already in ${zoneName}, ignoring`);
+        return;
       }
+      
+      console.log(`✅ DROPPING: ${item.cardId} from ${item.fromZone} to ${zoneName}`);
+      
+      // Call API to move card
+      api.moveCard(gameId, item.cardId, item.fromZone, zoneName)
+        .then((result) => {
+          console.log('✅ Move successful:', result);
+          onUpdate();
+        })
+        .catch(error => {
+          console.error('❌ Move failed:', error);
+          alert(`Failed to move card: ${error.message}`);
+        });
     },
     collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
+      isOver: !!monitor.isOver()
+    })
   });
-
-  const getZoneCount = () => {
-    if (cards.length === 0) return '';
-    return `(${cards.length})`;
-  };
 
   return (
     <div
       ref={drop}
       className={`zone ${className} ${isOver ? 'zone-hover' : ''}`}
+      style={{
+        minHeight: '120px',
+        border: isOver ? '2px solid #00ff00' : '1px solid #333'
+      }}
     >
       <div className="zone-header">
-        {zoneName.toUpperCase()} {getZoneCount()}
+        <span className="zone-name">{zoneName}</span>
+        <span className="zone-count">{cards.length}</span>
       </div>
       <div className="zone-cards">
         {cards.map((card) => (
@@ -49,9 +54,6 @@ const Zone = ({ zoneName, cards, gameId, onUpdate, className }) => {
             onUpdate={onUpdate}
           />
         ))}
-        {cards.length === 0 && (
-          <div className="zone-empty">Drop cards here</div>
-        )}
       </div>
     </div>
   );

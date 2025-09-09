@@ -45,8 +45,10 @@ const api = {
     return response.data;
   },
 
-  // Move card
+  // Move card - SINGLE DEFINITION WITH LOGGING
   moveCard: async (gameId, cardId, fromZone, toZone, position = null) => {
+    console.log('API Call: moveCard', { gameId, cardId, fromZone, toZone, position });
+    
     const response = await axios.patch(`${API_URL}/games/${gameId}/move-card`, {
       cardId,
       fromZone,
@@ -65,6 +67,14 @@ const api = {
   // Reset game
   resetGame: async (gameId) => {
     const response = await axios.patch(`${API_URL}/games/${gameId}/reset`);
+    return response.data;
+  },
+
+  // Import deck
+  importDeck: async (gameId, deckList) => {
+    const response = await axios.post(`${API_URL}/games/${gameId}/import-deck`, {
+      deckList
+    });
     return response.data;
   }
 };

@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import LifeCounter from './LifeCounter';
 import Zone from './Zone';
+import Battlefield from './Battlefield';
 import ControlPanel from './ControlPanel';
 import DeckViewer from './DeckViewer';
+import DeckImporter from './DeckImporter';
 import api from '../services/api';
 
 const GameBoard = ({ gameState, gameId, onUpdate }) => {
   const [showDeck, setShowDeck] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
 
   const handleReset = async () => {
     if (window.confirm('Reset the game? This will shuffle all cards back into your library.')) {
@@ -28,9 +31,14 @@ const GameBoard = ({ gameState, gameId, onUpdate }) => {
           gameId={gameId}
           onUpdate={onUpdate}
         />
-        <button className="reset-btn" onClick={handleReset}>
-          Reset Game
-        </button>
+        <div className="header-buttons">
+          <button className="import-deck-btn" onClick={() => setShowImporter(true)}>
+            Import Deck
+          </button>
+          <button className="reset-btn" onClick={handleReset}>
+            Reset Game
+          </button>
+        </div>
       </div>
 
       <div className="main-area">
@@ -51,12 +59,10 @@ const GameBoard = ({ gameState, gameId, onUpdate }) => {
           />
         </div>
 
-        <Zone
-          zoneName="battlefield"
+        <Battlefield
           cards={gameState.zones.battlefield}
           gameId={gameId}
           onUpdate={onUpdate}
-          className="battlefield-zone"
         />
 
         <div className="right-panel">
@@ -81,7 +87,17 @@ const GameBoard = ({ gameState, gameId, onUpdate }) => {
       {showDeck && (
         <DeckViewer
           deck={gameState.zones.library}
+          gameId={gameId}
           onClose={() => setShowDeck(false)}
+          onUpdate={onUpdate}
+        />
+      )}
+
+      {showImporter && (
+        <DeckImporter
+          gameId={gameId}
+          onImport={onUpdate}
+          onClose={() => setShowImporter(false)}
         />
       )}
     </div>

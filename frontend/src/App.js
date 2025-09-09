@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import GameBoard from './components/GameBoard';
@@ -10,6 +10,18 @@ function App() {
   const [gameState, setGameState] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const refreshGameState = useCallback(async () => {
+    if (!gameId) return;
+    
+    try {
+      const game = await api.getGame(gameId);
+      setGameState(game);
+      console.log('Game state refreshed');
+    } catch (error) {
+      console.error('Error fetching game state:', error);
+    }
+  }, [gameId]);
+
   const startNewGame = async () => {
     setLoading(true);
     try {
@@ -18,26 +30,16 @@ function App() {
       setGameState(newGame);
     } catch (error) {
       console.error('Error creating game:', error);
+      alert('Failed to create game: ' + error.message);
     }
     setLoading(false);
-  };
-
-  const refreshGameState = async () => {
-    if (!gameId) return;
-    
-    try {
-      const game = await api.getGame(gameId);
-      setGameState(game);
-    } catch (error) {
-      console.error('Error fetching game state:', error);
-    }
   };
 
   useEffect(() => {
     if (gameId) {
       refreshGameState();
     }
-  }, [gameId]);
+  }, [gameId, refreshGameState]);
 
   if (!gameState) {
     return (

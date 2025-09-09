@@ -95,7 +95,7 @@ router.get('/:id/deck', async (req, res) => {
   }
 });
 
-// Toggle tap/untap
+// Toggle tap/untap - FIXED VERSION
 router.patch('/:id/tap', async (req, res) => {
   try {
     const { cardId } = req.body;
@@ -108,7 +108,12 @@ router.patch('/:id/tap', async (req, res) => {
     const card = game.zones.battlefield.find(c => c.id === cardId);
     
     if (card) {
+      // Toggle the tapped state
       card.tapped = !card.tapped;
+      
+      // Mark as modified to ensure save
+      game.markModified('zones.battlefield');
+      
       game.updatedAt = Date.now();
       const updatedGame = await game.save();
       res.json(updatedGame);
@@ -124,35 +129,48 @@ router.patch('/:id/tap', async (req, res) => {
 router.patch('/:id/move-card', async (req, res) => {
   try {
     const { cardId, fromZone, toZone, position } = req.body;
+    console.log('Backend: Moving card', { cardId, fromZone, toZone });
+    
     const game = await Game.findById(req.params.id);
     
     if (!game) {
       return res.status(404).json({ error: 'Game not found' });
     }
     
+    // Find the card in the source zone
     const cardIndex = game.zones[fromZone].findIndex(c => c.id === cardId);
     
     if (cardIndex === -1) {
-      return res.status(404).json({ error: 'Card not found in source zone' });
+      console.log('Card not found in', fromZone);
+      console.log('Available cards:', game.zones[fromZone].map(c => c.id));
+      return res.status(404).json({ error: `Card not found in ${fromZone}` });
     }
     
+    // Remove card from source zone
     const [card] = game.zones[fromZone].splice(cardIndex, 1);
+    console.log('Removed card from', fromZone);
     
-    if (position && toZone === 'battlefield') {
+    // Update card properties based on destination
+    if (toZone === 'battlefield' && position) {
       card.position = position;
-    }
-    
-    // Reset tapped state when moving to non-battlefield zones
-    if (toZone !== 'battlefield') {
+    } else if (toZone !== 'battlefield') {
       card.tapped = false;
+      card.position = { x: 0, y: 0 };
     }
     
+    // Add card to destination zone
     game.zones[toZone].push(card);
+    console.log('Added card to', toZone);
+    
+    // Save
+    game.markModified('zones');
     game.updatedAt = Date.now();
     
     const updatedGame = await game.save();
+    console.log('Game saved successfully');
     res.json(updatedGame);
   } catch (error) {
+    console.error('Backend error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -243,5 +261,105 @@ function generateSampleDeck() {
   }
   return sampleCards;
 }
+
+// Import deck from text format
+router.post('/:id/import-deck', async (req, res) => {
+  try {
+    const { deckList } = req.body;
+    const game = await Game.findById(req.params.id);
+    
+    if (!game) {
+      return res.status(404).json({ error: 'Game not found' });
+    }
+    
+    const cards = [];
+    const lines = deckList.split('\n').filter(line => line.trim());
+    
+    lines.forEach(line => {
+      const match = line.match(/^(\d+)?\s*(.+)$/);
+      if (match) {
+        const count = parseInt(match[1]) || 1;
+        const cardName = match[2].trim();
+        
+        for (let i = 0; i < count; i++) {
+          cards.push({
+            id: `card-${Date.now()}-${Math.random()}`,
+            name: cardName,
+            // Use Scryfall API for card images
+            imageUrl: `https://api.scryfall.com/cards/named?format=image&face=front&fuzzy=${encodeURIComponent(cardName)}`,
+            tapped: false,
+            position: { x: 0, y: 0 }
+          });
+        }
+      }
+    });
+    
+    // Reset game with new deck
+    game.life = 20;
+    game.zones = {
+      library: cards,
+      hand: [],
+      battlefield: [],
+      graveyard: [],
+      exile: []
+    };
+    game.updatedAt = Date.now();
+    
+    const updatedGame = await game.save();
+    res.json(updatedGame);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update card position on battlefield (update the existing move-card route)
+router.patch('/:id/move-card', async (req, res) => {
+  try {
+    const { cardId, fromZone, toZone, position } = req.body;
+    const game = await Game.findById(req.params.id);
+    
+    if (!game) {
+      return res.status(404).json({ error: 'Game not found' });
+    }
+    
+    // If moving within battlefield, just update position
+    if (fromZone === 'battlefield' && toZone === 'battlefield') {
+      const card = game.zones.battlefield.find(c => c.id === cardId);
+      if (card && position) {
+        card.position = position;
+        game.updatedAt = Date.now();
+        const updatedGame = await game.save();
+        return res.json(updatedGame);
+      }
+    }
+    
+    // Otherwise, move between zones
+    const cardIndex = game.zones[fromZone].findIndex(c => c.id === cardId);
+    
+    if (cardIndex === -1) {
+      return res.status(404).json({ error: 'Card not found in source zone' });
+    }
+    
+    const [card] = game.zones[fromZone].splice(cardIndex, 1);
+    
+    if (position && toZone === 'battlefield') {
+      card.position = position;
+    }
+    
+    if (toZone !== 'battlefield') {
+      card.tapped = false;
+      card.position = { x: 0, y: 0 };
+    }
+    
+    game.zones[toZone].push(card);
+    game.updatedAt = Date.now();
+    
+    const updatedGame = await game.save();
+    res.json(updatedGame);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 export default router;
