@@ -187,11 +187,12 @@ body {
   min-height: 120px;
   display: flex;
   flex-direction: column;
+  transition: all 0.2s;
 }
 
 .zone-hover {
+  background: #252525;
   border-color: #444;
-  background: #1f1f1f;
 }
 
 .zone-header {
@@ -220,15 +221,27 @@ body {
   flex-wrap: wrap;
   gap: 6px;
   flex: 1;
+  align-items: flex-start;
 }
 
 .hand-zone .zone-cards {
   justify-content: center;
+  padding: 8px;
+}
+
+.hand-zone,
+.graveyard-zone,
+.exile-zone {
+  min-height: 140px;
+  max-height: 180px;
+  overflow-y: auto;
 }
 
 .graveyard-zone .zone-cards,
 .exile-zone .zone-cards {
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: flex-start;
+  padding: 8px;
 }
 
 .graveyard-zone .card,
@@ -247,6 +260,7 @@ body {
   background: #000;
   box-shadow: 0 1px 3px rgba(0,0,0,0.5);
   transition: transform 0.15s;
+  flex-shrink: 0;
 }
 
 .card:hover {
@@ -283,6 +297,9 @@ body {
   position: absolute;
   top: 8px;
   left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
   font-size: 0.75rem;
   color: #444;
   text-transform: uppercase;
@@ -290,6 +307,7 @@ body {
   pointer-events: none;
   z-index: 1;
 }
+
 
 .battlefield-card {
   position: absolute;
@@ -303,6 +321,13 @@ body {
   transition: box-shadow 0.15s;
 }
 
+.battlefield-hint {
+  font-size: 0.65rem;
+  color: #333;
+  font-style: italic;
+  text-transform: none;
+}
+
 .battlefield-card:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.8);
   z-index: 100;
@@ -314,6 +339,12 @@ body {
 
 .battlefield-card.tapped {
   transform: rotate(90deg);
+}
+
+.battlefield-card.repositioning {
+  cursor: grabbing !important;
+  z-index: 1000;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.9);
 }
 
 .battlefield-card img {
@@ -576,6 +607,20 @@ img {
 /* Zone drop indicators */
 .zone.can-drop {
   border-color: #333;
+}
+
+.zone::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.zone::-webkit-scrollbar-track {
+  background: #0d0d0d;
+}
+
+.zone::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
 }
 
 .zone.zone-hover {

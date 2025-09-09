@@ -8,19 +8,31 @@ const BattlefieldCard = ({ card, gameId, onUpdate, containerRef }) => {
     x: card.position?.x || 10,
     y: card.position?.y || 10
   });
+  const [isDraggingPosition, setIsDraggingPosition] = useState(false);
 
-  const [, drag] = useDrag(() => ({
+  // IMPORTANT: This drag setup allows dragging TO other zones
+  const [{ isDragging }, drag, preview] = useDrag(() => ({
     type: 'card',
     item: { 
       cardId: card.id, 
       fromZone: 'battlefield'
-    }
+    },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging()
+    })
   }), [card.id]);
 
+  // Handle repositioning within battlefield
   const handleMouseDown = (e) => {
-    if (e.button !== 0) return; // Only left click
+    // Only handle left click
+    if (e.button !== 0) return;
+    
+    // Check if shift key is held for repositioning
+    if (!e.shiftKey) return;
+    
     e.preventDefault();
     e.stopPropagation();
+    setIsDraggingPosition(true);
     
     const container = containerRef.current;
     if (!container) return;
@@ -29,12 +41,10 @@ const BattlefieldCard = ({ card, gameId, onUpdate, containerRef }) => {
     const cardEl = e.currentTarget;
     const cardRect = cardEl.getBoundingClientRect();
     
-    // Get initial offset of mouse within card
     const offsetX = e.clientX - cardRect.left;
     const offsetY = e.clientY - cardRect.top;
     
     const handleMouseMove = (e) => {
-      // Calculate new position based on mouse position
       const newX = ((e.clientX - rect.left - offsetX) / rect.width) * 100;
       const newY = ((e.clientY - rect.top - offsetY) / rect.height) * 100;
       
@@ -45,10 +55,10 @@ const BattlefieldCard = ({ card, gameId, onUpdate, containerRef }) => {
     };
     
     const handleMouseUp = () => {
+      setIsDraggingPosition(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
       
-      // Save final position
       api.moveCard(gameId, card.id, 'battlefield', 'battlefield', position)
         .catch(error => console.error('Error updating position:', error));
     };
@@ -64,24 +74,32 @@ const BattlefieldCard = ({ card, gameId, onUpdate, containerRef }) => {
       .catch(error => console.error('Error toggling tap:', error));
   };
 
+  // Combine drag ref with preview
+  const combinedRef = (el) => {
+    drag(el);
+    preview(el);
+  };
+
   return (
     <div
-      ref={drag}
-      className={`battlefield-card ${card.tapped ? 'tapped' : ''}`}
+      ref={combinedRef}
+      className={`battlefield-card ${card.tapped ? 'tapped' : ''} ${isDraggingPosition ? 'repositioning' : ''}`}
       style={{
         left: `${position.x}%`,
-        top: `${position.y}%`
+        top: `${position.y}%`,
+        opacity: isDragging ? 0.5 : 1,
+        cursor: isDraggingPosition ? 'grabbing' : 'grab'
       }}
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
-      title={card.name}
+      title={`${card.name} - Drag to move to other zones, Shift+Drag to reposition, Double-click to tap`}
     >
       <img 
         src={card.imageUrl} 
         alt={card.name}
         draggable={false}
         onError={(e) => {
-          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjUwIiBoZWlnaHQ9IjM1MCIgZmlsbD0iIzJhMmEyYSIvPgogIDxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjIzMCIgaGVpZ2h0PSIzMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzY2NiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGNpcmNsZSBjeD0iMTI1IiBjeT0iMTc1IiByPSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg0IjIiLz4KPC9zdmc+';
+          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjUwIiBoZWlnaHQ9IjM1MCIgZmlsbD0iIzJhMmEyYSIvPgogIDxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjIzMCIgaGVpZ2h0PSIzMzAiIGZpbGw0ibm9uZSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjIiLz4CiAgPGNpcmNsZSBjeD0iMTI1IiBjeT0iMTc1IiByPSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+';
         }}
       />
     </div>
@@ -129,7 +147,6 @@ const Battlefield = ({ cards, gameId, onUpdate }) => {
     })
   }), [gameId, onUpdate]);
 
-  // Combine refs
   const setRefs = (el) => {
     containerRef.current = el;
     drop(el);
@@ -142,6 +159,7 @@ const Battlefield = ({ cards, gameId, onUpdate }) => {
     >
       <div className="battlefield-header">
         <span>Battlefield</span>
+        <span className="battlefield-hint">Shift+Drag to reposition • Drag to move zones</span>
       </div>
       {cards.map((card) => (
         <BattlefieldCard
