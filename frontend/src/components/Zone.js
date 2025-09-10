@@ -4,41 +4,44 @@ import Card from './Card';
 import api from '../services/api';
 
 const Zone = ({ zoneName, cards, gameId, onUpdate, className }) => {
-  const [{ isOver }, drop] = useDrop({
+  const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: 'card',
+    canDrop: (item) => {
+      // Can drop if it's from a different zone
+      return item.fromZone !== zoneName;
+    },
     drop: (item) => {
-      // Prevent dropping in same zone
+      console.log(`Dropping on ${zoneName} from ${item.fromZone}`);
+      
+      // Don't do anything if dropping in same zone
       if (item.fromZone === zoneName) {
-        console.log(`Already in ${zoneName}, ignoring`);
+        console.log('Same zone, ignoring');
         return;
       }
       
-      console.log(`✅ DROPPING: ${item.cardId} from ${item.fromZone} to ${zoneName}`);
+      // Move the card
+      console.log(`Moving card ${item.cardId} from ${item.fromZone} to ${zoneName}`);
       
-      // Call API to move card
-      api.moveCard(gameId, item.cardId, item.fromZone, zoneName)
-        .then((result) => {
-          console.log('✅ Move successful:', result);
+      api.moveCard(gameId, item.cardId, item.fromZone, zoneName, null)
+        .then(() => {
+          console.log('Move successful, updating...');
           onUpdate();
         })
         .catch(error => {
-          console.error('❌ Move failed:', error);
-          alert(`Failed to move card: ${error.message}`);
+          console.error('Error moving card:', error);
+          alert(`Error moving card: ${error.message}`);
         });
     },
     collect: (monitor) => ({
-      isOver: !!monitor.isOver()
+      isOver: !!monitor.isOver(),
+      canDrop: !!monitor.canDrop()
     })
-  });
+  }), [gameId, zoneName, onUpdate]);
 
   return (
     <div
       ref={drop}
-      className={`zone ${className} ${isOver ? 'zone-hover' : ''}`}
-      style={{
-        minHeight: '120px',
-        border: isOver ? '2px solid #00ff00' : '1px solid #333'
-      }}
+      className={`zone ${className} ${isOver && canDrop ? 'zone-hover' : ''} ${canDrop ? 'can-drop' : ''}`}
     >
       <div className="zone-header">
         <span className="zone-name">{zoneName}</span>
@@ -54,6 +57,9 @@ const Zone = ({ zoneName, cards, gameId, onUpdate, className }) => {
             onUpdate={onUpdate}
           />
         ))}
+        {cards.length === 0 && (
+          <div className="zone-empty">Drop cards here</div>
+        )}
       </div>
     </div>
   );

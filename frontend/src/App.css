@@ -167,11 +167,12 @@ body {
 /* Main Layout */
 .main-area {
   display: grid;
-  grid-template-columns: 200px 1fr 200px;
+  grid-template-columns: 300px 1fr 250px; /* Adjusted for bigger cards */
   gap: 1rem;
   flex: 1;
   min-height: 0;
 }
+
 
 .left-panel, .right-panel {
   display: flex;
@@ -183,8 +184,8 @@ body {
 .zone {
   background: #1a1a1a;
   border: 1px solid #2a2a2a;
-  padding: 0.75rem;
-  min-height: 120px;
+  padding: 1rem;
+  min-height: 220px; /* Increased for bigger cards */
   display: flex;
   flex-direction: column;
   transition: all 0.2s;
@@ -218,15 +219,17 @@ body {
 
 .zone-cards {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-wrap: nowrap; /* Don't wrap for horizontal scrolling */
+  gap: 8px;
   flex: 1;
   align-items: flex-start;
 }
 
 .hand-zone .zone-cards {
   justify-content: center;
-  padding: 8px;
+  padding: 12px;
+  gap: 8px;
+  min-width: min-content;
 }
 
 .hand-zone,
@@ -241,31 +244,41 @@ body {
 .exile-zone .zone-cards {
   flex-direction: row;
   justify-content: flex-start;
-  padding: 8px;
+  padding: 12px;
+  gap: 8px;
 }
 
-.graveyard-zone .card,
-.exile-zone .card {
-  width: 60px;
-  height: 84px;
+.graveyard-zone,
+.exile-zone {
+  min-height: 220px;
+  max-height: 240px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.hand-zone {
+  min-height: 240px;
+  max-height: 280px;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 /* Cards */
 .card {
-  width: 63px;
-  height: 88px;
-  border-radius: 4.5px;
+  width: 126px;  /* Was 63px */
+  height: 176px; /* Was 88px */
+  border-radius: 9px; /* Was 4.5px */
   overflow: hidden;
   cursor: grab;
   background: #000;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
   transition: transform 0.15s;
   flex-shrink: 0;
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.8);
+  transform: translateY(-8px); /* Was -4px */
+  box-shadow: 0 8px 16px rgba(0,0,0,0.8);
   z-index: 10;
 }
 
@@ -278,6 +291,7 @@ body {
   height: 100%;
   object-fit: cover;
   user-select: none;
+  pointer-events: none;
 }
 
 /* Battlefield */
@@ -285,7 +299,7 @@ body {
   position: relative;
   background: #141414;
   border: 1px solid #2a2a2a;
-  min-height: 400px;
+  min-height: 500px; /* Increased for bigger cards */
   overflow: hidden;
 }
 
@@ -311,13 +325,13 @@ body {
 
 .battlefield-card {
   position: absolute;
-  width: 63px;
-  height: 88px;
-  border-radius: 4.5px;
+  width: 126px;  /* Was 63px */
+  height: 176px; /* Was 88px */
+  border-radius: 9px;
   overflow: hidden;
   cursor: grab;
   background: #000;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
   transition: box-shadow 0.15s;
 }
 
@@ -329,7 +343,7 @@ body {
 }
 
 .battlefield-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.8);
   z-index: 100;
 }
 
@@ -344,7 +358,7 @@ body {
 .battlefield-card.repositioning {
   cursor: grabbing !important;
   z-index: 1000;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.9);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.9);
 }
 
 .battlefield-card img {
@@ -359,7 +373,8 @@ body {
 .control-panel {
   background: #1a1a1a;
   border: 1px solid #2a2a2a;
-  padding: 0.75rem;
+  padding: 1rem;
+  min-height: auto;
 }
 
 .control-panel h3 {
@@ -461,8 +476,8 @@ body {
 
 .deck-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
 }
 
 .deck-card-item {
@@ -473,9 +488,9 @@ body {
 }
 
 .deck-card-item img {
-  width: 63px;
-  height: 88px;
-  border-radius: 4.5px;
+  width: 126px;
+  height: 176px;
+  border-radius: 9px;
 }
 
 .import-instructions {
@@ -610,17 +625,16 @@ img {
 }
 
 .zone::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  height: 8px;
 }
 
 .zone::-webkit-scrollbar-track {
   background: #0d0d0d;
+  border-radius: 4px;
 }
 
-.zone::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 3px;
+.zone::-webkit-scrollbar-thumb:hover {
+  background: #444;
 }
 
 .zone.zone-hover {
@@ -661,4 +675,17 @@ img {
   z-index: 1000;
   cursor: grabbing;
 }
+
+@media (max-width: 1400px) {
+  .card,
+  .battlefield-card {
+    width: 100px;
+    height: 140px;
+  }
+  
+  .main-area {
+    grid-template-columns: 250px 1fr 200px;
+  }
+}
+
 }
