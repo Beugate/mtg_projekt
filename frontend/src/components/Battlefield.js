@@ -8,69 +8,63 @@ const BattlefieldCard = ({ card, gameId, onUpdate, containerRef }) => {
     x: card.position?.x || 10,
     y: card.position?.y || 10
   });
-  const [isDraggingWithinBattlefield, setIsDraggingWithinBattlefield] = useState(false);
 
-  // Setup for dragging to other zones
-  const [{ isDragging }, drag] = useDrag(() => ({
+  // This is the KEY fix - proper drag source setup
+  const [{ isDragging }, drag, dragPreview] = useDrag(() => ({
     type: 'card',
-    item: { 
+    item: () => ({ 
       cardId: card.id, 
       fromZone: 'battlefield'
-    },
+    }),
     collect: (monitor) => ({
-      isDragging: !!monitor.isDragging()
+      isDragging: monitor.isDragging()
     })
   }), [card.id]);
 
-  // Handle both repositioning and zone dragging
+  // Right-click to move within battlefield
   const handleMouseDown = (e) => {
-    if (e.button !== 0) return; // Only left click
-    
-    // Check if Alt key is held - if so, let react-dnd handle it for zone movement
-    if (e.altKey) {
-      return; // Let the drag handler take over for zone movement
+    // Right click for repositioning
+    if (e.button === 2) {
+      e.preventDefault();
+      
+      const container = containerRef.current;
+      if (!container) return;
+      
+      const rect = container.getBoundingClientRect();
+      const cardEl = e.currentTarget;
+      const cardRect = cardEl.getBoundingClientRect();
+      
+      const offsetX = e.clientX - cardRect.left;
+      const offsetY = e.clientY - cardRect.top;
+      
+      const handleMouseMove = (e) => {
+        const newX = ((e.clientX - rect.left - offsetX) / rect.width) * 100;
+        const newY = ((e.clientY - rect.top - offsetY) / rect.height) * 100;
+        
+        setPosition({
+          x: Math.max(0, Math.min(85, newX)),
+          y: Math.max(0, Math.min(75, newY))
+        });
+      };
+      
+      const handleMouseUp = async () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        
+        try {
+          await api.moveCard(gameId, card.id, 'battlefield', 'battlefield', position);
+        } catch (error) {
+          console.error('Error updating position:', error);
+        }
+      };
+      
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
     }
-    
-    // Otherwise, handle repositioning within battlefield
-    e.preventDefault();
-    setIsDraggingWithinBattlefield(true);
-    
-    const container = containerRef.current;
-    if (!container) return;
-    
-    const rect = container.getBoundingClientRect();
-    const cardEl = e.currentTarget;
-    const cardRect = cardEl.getBoundingClientRect();
-    
-    // Get offset of mouse within card
-    const offsetX = e.clientX - cardRect.left;
-    const offsetY = e.clientY - cardRect.top;
-    
-    const handleMouseMove = (e) => {
-      const newX = ((e.clientX - rect.left - offsetX) / rect.width) * 100;
-      const newY = ((e.clientY - rect.top - offsetY) / rect.height) * 100;
-      
-      setPosition({
-        x: Math.max(0, Math.min(85, newX)), // Adjusted for bigger cards
-        y: Math.max(0, Math.min(80, newY))
-      });
-    };
-    
-    const handleMouseUp = async () => {
-      setIsDraggingWithinBattlefield(false);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      
-      // Save position to backend
-      try {
-        await api.moveCard(gameId, card.id, 'battlefield', 'battlefield', position);
-      } catch (error) {
-        console.error('Error updating position:', error);
-      }
-    };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleContextMenu = (e) => {
+    e.preventDefault(); // Prevent context menu on right-click
   };
 
   const handleDoubleClick = (e) => {
@@ -82,17 +76,20 @@ const BattlefieldCard = ({ card, gameId, onUpdate, containerRef }) => {
 
   return (
     <div
-      ref={drag}
-      className={`battlefield-card ${card.tapped ? 'tapped' : ''} ${isDraggingWithinBattlefield ? 'repositioning' : ''}`}
+      ref={(el) => {
+        drag(el);
+        dragPreview(el);
+      }}
+      className={`battlefield-card ${card.tapped ? 'tapped' : ''}`}
       style={{
         left: `${position.x}%`,
         top: `${position.y}%`,
-        opacity: isDragging ? 0.5 : 1,
-        cursor: isDraggingWithinBattlefield ? 'grabbing' : 'grab'
+        opacity: isDragging ? 0.5 : 1
       }}
       onMouseDown={handleMouseDown}
+      onContextMenu={handleContextMenu}
       onDoubleClick={handleDoubleClick}
-      title={`${card.name} - Alt+Drag to move to zones • Drag to reposition • Double-click to tap`}
+      title={`${card.name} - Left-drag to zones • Right-drag to move • Double-click to tap`}
     >
       <img 
         src={card.imageUrl} 
@@ -122,13 +119,12 @@ const Battlefield = ({ cards, gameId, onUpdate }) => {
       let position = { x: 10, y: 10 };
       
       if (clientOffset && containerRect) {
-        // Adjust for bigger card size (126x176)
         const x = ((clientOffset.x - containerRect.left - 63) / containerRect.width) * 100;
         const y = ((clientOffset.y - containerRect.top - 88) / containerRect.height) * 100;
         
         position = {
           x: Math.max(0, Math.min(85, x)),
-          y: Math.max(0, Math.min(80, y))
+          y: Math.max(0, Math.min(75, y))
         };
       }
       
@@ -157,7 +153,7 @@ const Battlefield = ({ cards, gameId, onUpdate }) => {
     >
       <div className="battlefield-header">
         <span>Battlefield</span>
-        <span className="battlefield-hint">Alt+Drag to zones • Drag to move • Double-click to tap</span>
+        <span className="battlefield-hint">Left-drag to zones • Right-drag to move • Double-click to tap</span>
       </div>
       {cards.map((card) => (
         <BattlefieldCard

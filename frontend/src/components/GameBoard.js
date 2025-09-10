@@ -41,31 +41,15 @@ const GameBoard = ({ gameState, gameId, onUpdate }) => {
         </div>
       </div>
 
-      <div className="main-area">
-        <div className="left-panel">
-          <Zone
-            zoneName="hand"
-            cards={gameState.zones.hand}
-            gameId={gameId}
-            onUpdate={onUpdate}
-            className="hand-zone"
-          />
-          
+      <div className="game-layout">
+        <div className="side-panel">
           <ControlPanel
             gameId={gameId}
             onUpdate={onUpdate}
             onViewDeck={() => setShowDeck(true)}
             libraryCount={gameState.zones.library.length}
           />
-        </div>
-
-        <Battlefield
-          cards={gameState.zones.battlefield}
-          gameId={gameId}
-          onUpdate={onUpdate}
-        />
-
-        <div className="right-panel">
+          
           <Zone
             zoneName="graveyard"
             cards={gameState.zones.graveyard}
@@ -80,6 +64,22 @@ const GameBoard = ({ gameState, gameId, onUpdate }) => {
             gameId={gameId}
             onUpdate={onUpdate}
             className="exile-zone"
+          />
+        </div>
+
+        <div className="main-play-area">
+          <Battlefield
+            cards={gameState.zones.battlefield}
+            gameId={gameId}
+            onUpdate={onUpdate}
+          />
+          
+          <Zone
+            zoneName="hand"
+            cards={gameState.zones.hand}
+            gameId={gameId}
+            onUpdate={onUpdate}
+            className="hand-zone-bottom"
           />
         </div>
       </div>
