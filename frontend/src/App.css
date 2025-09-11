@@ -260,13 +260,14 @@ body {
   -webkit-user-drag: none;
 }
 
-/* ========== HAND ZONE AT BOTTOM ========== */
+/* ========== HAND ZONE AT BOTTOM WITH SCROLLBAR ========== */
 .hand-zone-bottom {
   background: #1a1a1a;
   border: 1px solid #2a2a2a;
   padding: 1rem;
   min-height: 220px;
   height: 220px;
+  position: relative;
 }
 
 .hand-zone-bottom .zone-header {
@@ -280,14 +281,59 @@ body {
 
 .hand-zone-bottom .zone-cards {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: 10px;
   height: 176px;
   padding: 0 10px;
   overflow-x: auto;
   overflow-y: hidden;
+  scroll-behavior: smooth;
 }
+
+/* Show scrollbar always for better UX */
+.hand-zone-bottom .zone-cards::-webkit-scrollbar {
+  height: 12px;
+}
+
+.hand-zone-bottom .zone-cards::-webkit-scrollbar-track {
+  background: #0d0d0d;
+  border-radius: 6px;
+  margin: 0 10px;
+}
+
+.hand-zone-bottom .zone-cards::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 6px;
+  border: 2px solid #0d0d0d;
+}
+
+.hand-zone-bottom .zone-cards::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Ensure cards don't shrink */
+.hand-zone-bottom .card {
+  flex-shrink: 0;
+  width: 126px;
+  height: 176px;
+}
+
+/* SIMPLE HAND SCROLLBAR FIX */
+.hand-zone-bottom .zone-cards {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+}
+
+.hand-zone-bottom .card {
+  min-width: 126px !important;
+  flex-shrink: 0 !important;
+}
+
+
 
 /* ========== SIDE ZONES ========== */
 .graveyard-zone,
@@ -435,6 +481,41 @@ body {
   text-align: center;
   padding: 2rem;
   font-size: 0.85rem;
+}
+
+/* ========== CARD CONTEXT MENU ========== */
+.card-context-menu {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 4px;
+  min-width: 180px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+}
+
+.card-context-menu button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  color: #e0e0e0;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+
+.card-context-menu button:hover {
+  background: #3a3a3a;
+}
+
+.card-context-menu button:first-child {
+  border-radius: 4px 4px 0 0;
+}
+
+.card-context-menu button:last-child {
+  border-radius: 0 0 4px 4px;
 }
 
 /* ========== DECK VIEWER ========== */
@@ -654,7 +735,7 @@ body {
   cursor: not-allowed;
 }
 
-/* ========== SCROLLBARS ========== */
+/* ========== SCROLLBARS GENERAL ========== */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
