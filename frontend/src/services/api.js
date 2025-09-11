@@ -45,7 +45,7 @@ const api = {
     return response.data;
   },
 
-  // Move card - SINGLE DEFINITION WITH LOGGING
+  // Move card
   moveCard: async (gameId, cardId, fromZone, toZone, position = null) => {
     console.log('API Call: moveCard', { gameId, cardId, fromZone, toZone, position });
     
@@ -54,6 +54,28 @@ const api = {
       fromZone,
       toZone,
       position
+    });
+    return response.data;
+  },
+
+  // Put card on top of library - ADD THIS
+  putCardOnTop: async (gameId, cardId, fromZone) => {
+    console.log('API Call: putCardOnTop', { gameId, cardId, fromZone });
+    
+    const response = await axios.patch(`${API_URL}/games/${gameId}/to-library-top`, {
+      cardId,
+      fromZone
+    });
+    return response.data;
+  },
+
+  // Put card on bottom of library - ADD THIS
+  putCardOnBottom: async (gameId, cardId, fromZone) => {
+    console.log('API Call: putCardOnBottom', { gameId, cardId, fromZone });
+    
+    const response = await axios.patch(`${API_URL}/games/${gameId}/to-library-bottom`, {
+      cardId,
+      fromZone
     });
     return response.data;
   },

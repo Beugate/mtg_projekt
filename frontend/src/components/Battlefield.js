@@ -3,68 +3,27 @@ import { useDrop } from 'react-dnd';
 import { useDrag } from 'react-dnd';
 import api from '../services/api';
 
-const BattlefieldCard = ({ card, gameId, onUpdate, containerRef }) => {
-  const [position, setPosition] = useState({
-    x: card.position?.x || 10,
-    y: card.position?.y || 10
-  });
+const BattlefieldCard = ({ card, gameId, onUpdate }) => {
+  const [showMenu, setShowMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 
-  // This is the KEY fix - proper drag source setup
-  const [{ isDragging }, drag, dragPreview] = useDrag(() => ({
+  // Make card draggable to other zones
+  const [{ isDragging }, drag] = useDrag(() => ({
     type: 'card',
-    item: () => ({ 
+    item: { 
       cardId: card.id, 
       fromZone: 'battlefield'
-    }),
+    },
     collect: (monitor) => ({
-      isDragging: monitor.isDragging()
+      isDragging: !!monitor.isDragging()
     })
   }), [card.id]);
 
-  // Right-click to move within battlefield
-  const handleMouseDown = (e) => {
-    // Right click for repositioning
-    if (e.button === 2) {
-      e.preventDefault();
-      
-      const container = containerRef.current;
-      if (!container) return;
-      
-      const rect = container.getBoundingClientRect();
-      const cardEl = e.currentTarget;
-      const cardRect = cardEl.getBoundingClientRect();
-      
-      const offsetX = e.clientX - cardRect.left;
-      const offsetY = e.clientY - cardRect.top;
-      
-      const handleMouseMove = (e) => {
-        const newX = ((e.clientX - rect.left - offsetX) / rect.width) * 100;
-        const newY = ((e.clientY - rect.top - offsetY) / rect.height) * 100;
-        
-        setPosition({
-          x: Math.max(0, Math.min(85, newX)),
-          y: Math.max(0, Math.min(75, newY))
-        });
-      };
-      
-      const handleMouseUp = async () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-        
-        try {
-          await api.moveCard(gameId, card.id, 'battlefield', 'battlefield', position);
-        } catch (error) {
-          console.error('Error updating position:', error);
-        }
-      };
-      
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-  };
-
+  // Right-click for menu
   const handleContextMenu = (e) => {
-    e.preventDefault(); // Prevent context menu on right-click
+    e.preventDefault();
+    setMenuPosition({ x: e.clientX, y: e.clientY });
+    setShowMenu(true);
   };
 
   const handleDoubleClick = (e) => {
@@ -74,45 +33,90 @@ const BattlefieldCard = ({ card, gameId, onUpdate, containerRef }) => {
       .catch(error => console.error('Error toggling tap:', error));
   };
 
+  const handlePutOnTop = async () => {
+    setShowMenu(false);
+    try {
+      await api.putCardOnTop(gameId, card.id, 'battlefield');
+      onUpdate();
+    } catch (error) {
+      console.error('Error putting card on top:', error);
+    }
+  };
+
+  const handlePutOnBottom = async () => {
+    setShowMenu(false);
+    try {
+      await api.putCardOnBottom(gameId, card.id, 'battlefield');
+      onUpdate();
+    } catch (error) {
+      console.error('Error putting card on bottom:', error);
+    }
+  };
+
+  // Close menu when clicking elsewhere
+  React.useEffect(() => {
+    const handleClick = () => setShowMenu(false);
+    if (showMenu) {
+      document.addEventListener('click', handleClick);
+      return () => document.removeEventListener('click', handleClick);
+    }
+  }, [showMenu]);
+
   return (
-    <div
-      ref={(el) => {
-        drag(el);
-        dragPreview(el);
-      }}
-      className={`battlefield-card ${card.tapped ? 'tapped' : ''}`}
-      style={{
-        left: `${position.x}%`,
-        top: `${position.y}%`,
-        opacity: isDragging ? 0.5 : 1
-      }}
-      onMouseDown={handleMouseDown}
-      onContextMenu={handleContextMenu}
-      onDoubleClick={handleDoubleClick}
-      title={`${card.name} - Left-drag to zones • Right-drag to move • Double-click to tap`}
-    >
-      <img 
-        src={card.imageUrl} 
-        alt={card.name}
-        draggable={false}
-        onError={(e) => {
-          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjUwIiBoZWlnaHQ9IjM1MCIgZmlsbD0iIzJhMmEyYSIvPgogIDxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjIzMCIgaGVpZ2h0PSIzMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzY2NiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGNpcmNsZSBjeD0iMTI1IiBjeT0iMTc1IiByPSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+';
+    <>
+      <div
+        ref={drag}
+        className={`battlefield-card ${card.tapped ? 'tapped' : ''}`}
+        style={{
+          left: `${card.position?.x || 10}%`,
+          top: `${card.position?.y || 10}%`,
+          opacity: isDragging ? 0.5 : 1
         }}
-      />
-    </div>
+        onContextMenu={handleContextMenu}
+        onDoubleClick={handleDoubleClick}
+        title={card.name}
+      >
+        <img 
+          src={card.imageUrl} 
+          alt={card.name}
+          draggable={false}
+          onError={(e) => {
+            e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjUwIiBoZWlnaHQ9IjM1MCIgZmlsbD0iIzJhMmEyYSIvPgogIDxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjIzMCIgaGVpZ2h0PSIzMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzY2NiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGNpcmNsZSBjeD0iMTI1IiBjeT0iMTc1IiByPSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+';
+          }}
+        />
+      </div>
+      
+      {showMenu && (
+        <div 
+          className="card-context-menu"
+          style={{
+            position: 'fixed',
+            left: menuPosition.x,
+            top: menuPosition.y,
+            zIndex: 10000
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button onClick={handlePutOnTop}>Put on Top of Library</button>
+          <button onClick={handlePutOnBottom}>Put on Bottom of Library</button>
+        </div>
+      )}
+    </>
   );
 };
 
 const Battlefield = ({ cards, gameId, onUpdate }) => {
   const containerRef = useRef(null);
+  const [localCards, setLocalCards] = useState(cards);
+
+  // Update local cards when props change
+  React.useEffect(() => {
+    setLocalCards(cards);
+  }, [cards]);
 
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'card',
-    drop: (item, monitor) => {
-      if (item.fromZone === 'battlefield') {
-        return;
-      }
-      
+    drop: async (item, monitor) => {
       const clientOffset = monitor.getClientOffset();
       const containerRect = containerRef.current?.getBoundingClientRect();
       
@@ -124,17 +128,33 @@ const Battlefield = ({ cards, gameId, onUpdate }) => {
         
         position = {
           x: Math.max(0, Math.min(85, x)),
-          y: Math.max(0, Math.min(75, y))
+          y: Math.max(0, Math.min(80, y))
         };
       }
-      
-      api.moveCard(gameId, item.cardId, item.fromZone, 'battlefield', position)
-        .then(() => {
+
+      // If card is already on battlefield, just update position
+      if (item.fromZone === 'battlefield') {
+        // Update position locally first for smooth movement
+        setLocalCards(prev => prev.map(c => 
+          c.id === item.cardId ? { ...c, position } : c
+        ));
+        
+        // Then update backend
+        try {
+          await api.moveCard(gameId, item.cardId, 'battlefield', 'battlefield', position);
           onUpdate();
-        })
-        .catch(error => {
+        } catch (error) {
+          console.error('Error updating position:', error);
+        }
+      } else {
+        // Moving from another zone to battlefield
+        try {
+          await api.moveCard(gameId, item.cardId, item.fromZone, 'battlefield', position);
+          onUpdate();
+        } catch (error) {
           console.error('Error moving card to battlefield:', error);
-        });
+        }
+      }
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver()
@@ -153,15 +173,14 @@ const Battlefield = ({ cards, gameId, onUpdate }) => {
     >
       <div className="battlefield-header">
         <span>Battlefield</span>
-        <span className="battlefield-hint">Left-drag to zones • Right-drag to move • Double-click to tap</span>
+        <span className="battlefield-hint">Drag to move • Right-click for menu • Double-click to tap</span>
       </div>
-      {cards.map((card) => (
+      {localCards.map((card) => (
         <BattlefieldCard
           key={card.id}
           card={card}
           gameId={gameId}
           onUpdate={onUpdate}
-          containerRef={containerRef}
         />
       ))}
     </div>
