@@ -30,7 +30,7 @@ console.log(` Environment: ${process.env.NODE_ENV || 'development'}`);
 // ===== MIDDLEWARE =====
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] // Replace with your frontend domain
+    ? ['https://mtg-projekt-frontend.vercel.app/'] // Replace with your frontend domain
     : ['http://localhost:3000'], // React dev server
   credentials: true
 }));
