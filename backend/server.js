@@ -15,7 +15,7 @@ dotenv.config();
 const requiredEnvVars = ['MONGODB_URI'];
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
-    console.error(`❌ Missing required environment variable: ${envVar}`);
+    console.error(` Missing required environment variable: ${envVar}`);
     process.exit(1);
   }
 }
@@ -23,9 +23,9 @@ for (const envVar of requiredEnvVars) {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-console.log('🚀 Starting MTG Deck Tester Backend...');
-console.log(`📦 Node.js version: ${process.version}`);
-console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(' Starting MTG Deck Tester Backend...');
+console.log(` Node.js version: ${process.version}`);
+console.log(` Environment: ${process.env.NODE_ENV || 'development'}`);
 
 // ===== MIDDLEWARE =====
 app.use(cors({
@@ -41,7 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 // Request logging in development
 if (process.env.NODE_ENV !== 'production') {
   app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`, req.body ? '📄' : '');
+    console.log(`${req.method} ${req.path}`, req.body ? 'dev' : '');
     next();
   });
 }
@@ -89,7 +89,7 @@ app.use('*', (req, res) => {
 
 // Global error handler
 app.use((error, req, res, next) => {
-  console.error('❌ Server Error:', error.message);
+  console.error(' Server Error:', error.message);
   
   // MongoDB duplicate key error
   if (error.code === 11000) {
@@ -127,26 +127,26 @@ const connectDB = async () => {
     // Connect to MongoDB (no deprecated options needed)
     const conn = await mongoose.connect(mongoURI);
     
-    console.log(`✅ MongoDB Connected!`);
-    console.log(`📍 Host: ${conn.connection.host}`);
-    console.log(`📁 Database: ${conn.connection.name}`);
+    console.log(` MongoDB Connected!`);
+    console.log(` Host: ${conn.connection.host}`);
+    console.log(` Database: ${conn.connection.name}`);
     
     // Log collection info in development
     if (process.env.NODE_ENV !== 'production') {
       const collections = await conn.connection.db.listCollections().toArray();
-      console.log(`📊 Collections: ${collections.map(c => c.name).join(', ') || 'none yet'}`);
+      console.log(`Collections: ${collections.map(c => c.name).join(', ') || 'none yet'}`);
     }
     
   } catch (error) {
-    console.error('❌ MongoDB connection failed:', error.message);
+    console.error(' MongoDB connection failed:', error.message);
     
     // Common error help
     if (error.message.includes('authentication failed')) {
-      console.log('💡 Check your username/password in MONGODB_URI');
+      console.log(' Check your username/password in MONGODB_URI');
     } else if (error.message.includes('ENOTFOUND')) {
-      console.log('💡 Check your internet connection and MongoDB URI');
+      console.log('Check your internet connection and MongoDB URI');
     } else if (error.message.includes('timeout')) {
-      console.log('💡 Check your network access settings in MongoDB Atlas');
+      console.log(' Check your network access settings in MongoDB Atlas');
     }
     
     process.exit(1);
@@ -160,10 +160,10 @@ const startServer = async () => {
   
   // Start HTTP server
   const server = app.listen(PORT, () => {
-    console.log('🎉 Server started successfully!');
-    console.log(`🌐 Local: http://localhost:${PORT}`);
-    console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`📖 API docs: http://localhost:${PORT}/`);
+    console.log(' Server started successfully!');
+    console.log(` Local: http://localhost:${PORT}`);
+    console.log(` Health check: http://localhost:${PORT}/api/health`);
+    console.log(` API docs: http://localhost:${PORT}/`);
   });
   
   return server;
@@ -171,24 +171,24 @@ const startServer = async () => {
 
 // Handle MongoDB connection events
 mongoose.connection.on('disconnected', () => {
-  console.log('⚠️  MongoDB disconnected');
+  console.log('  MongoDB disconnected');
 });
 
 mongoose.connection.on('reconnected', () => {
-  console.log('🔄 MongoDB reconnected');
+  console.log(' MongoDB reconnected');
 });
 
 // Graceful shutdown
 const gracefulShutdown = async () => {
-  console.log('\n🛑 Shutting down gracefully...');
+  console.log('\n Shutting down gracefully...');
   
   try {
     await mongoose.connection.close();
-    console.log('📤 MongoDB connection closed');
+    console.log(' MongoDB connection closed');
     
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error during shutdown:', error);
+    console.error(' Error during shutdown:', error);
     process.exit(1);
   }
 };
@@ -198,6 +198,6 @@ process.on('SIGINT', gracefulShutdown);
 
 // Start the application
 startServer().catch(error => {
-  console.error('❌ Failed to start server:', error);
+  console.error(' Failed to start server:', error);
   process.exit(1);
 });

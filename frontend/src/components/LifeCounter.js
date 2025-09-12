@@ -15,9 +15,7 @@ const LifeCounter = ({ life, gameId, onUpdate }) => {
     <div className="life-counter">
       <span className="life-label">Life Total</span>
       <div className="life-controls">
-        <button className="life-btn minus-5" onClick={() => adjustLife(-5)}>
-          -5
-        </button>
+        
         <button className="life-btn minus" onClick={() => adjustLife(-1)}>
           -1
         </button>
@@ -25,9 +23,7 @@ const LifeCounter = ({ life, gameId, onUpdate }) => {
         <button className="life-btn plus" onClick={() => adjustLife(1)}>
           +1
         </button>
-        <button className="life-btn plus-5" onClick={() => adjustLife(5)}>
-          +5
-        </button>
+        
       </div>
     </div>
   );

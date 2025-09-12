@@ -45,12 +45,8 @@ const deckSchema = new mongoose.Schema({
     required: true,
     index: true
   },
-  format: {
-    type: String,
-    enum: ['standard', 'modern', 'legacy', 'vintage', 'commander', 'pioneer', 'historic', 'casual'],
-    default: 'casual'
-  },
   
+
   // Card lists
   cards: [cardSchema],
   mainboard: [cardSchema],
@@ -73,18 +69,7 @@ const deckSchema = new mongoose.Schema({
     default: false
   },
   
-  // Game tracking
-  wins: { 
-    type: Number, 
-    default: 0,
-    min: 0
-  },
-  losses: { 
-    type: Number, 
-    default: 0,
-    min: 0
-  },
-  
+ 
   // Tags for organization
   tags: [{
     type: String,
@@ -121,23 +106,6 @@ deckSchema.pre('save', function(next) {
   next();
 });
 
-// Virtual for win rate
-deckSchema.virtual('winRate').get(function() {
-  const totalGames = this.wins + this.losses;
-  return totalGames > 0 ? (this.wins / totalGames * 100).toFixed(1) : 0;
-});
-
-// Method to record game result
-deckSchema.methods.recordGame = function(result, notes = '') {
-  if (result === 'win') {
-    this.wins += 1;
-  } else if (result === 'loss') {
-    this.losses += 1;
-  }
-  
-  this.lastPlayed = new Date();
-  return this.save();
-};
 
 // Static method to find user's decks
 deckSchema.statics.findByUser = function(userId, options = {}) {

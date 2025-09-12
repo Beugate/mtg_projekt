@@ -6,12 +6,16 @@ const DeckImporter = ({ gameId, onImport, onClose }) => {
   const [isImporting, setIsImporting] = useState(false);
 
   const sampleDeck = `4 Lightning Bolt
-4 Counterspell
+  4 Snapcaster Mage
+  4 Counterspell
 4 Birds of Paradise
 4 Llanowar Elves
 3 Wrath of God
 2 Serra Angel
-1 Black Lotus`;
+1 Black Lotus
+20 Forest
+10 Island
+4Mountain`;
 
   const handleImport = async () => {
     if (!deckList.trim()) return;

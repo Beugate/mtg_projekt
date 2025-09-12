@@ -45,9 +45,8 @@ const gameSchema = new mongoose.Schema({
   // Game state
   life: {
     type: Number,
-    default: 20,
-    min: -100,
-    max: 200
+    default: 20
+    
   },
   
   // Card zones
@@ -63,11 +62,9 @@ const gameSchema = new mongoose.Schema({
   startingLife: {
     type: Number,
     default: 20
-  },
-  format: {
-    type: String,
-    default: 'casual'
-  },
+  }
+ 
+  ,
   
   // Game metadata
   deckName: String,
@@ -91,19 +88,7 @@ const gameSchema = new mongoose.Schema({
   },
   endedAt: Date,
   
-  // Game result
-  result: {
-    type: String,
-    enum: ['win', 'loss', 'draw', 'ongoing'],
-    default: 'ongoing'
-  },
   
-  // Turn tracking
-  turn: {
-    type: Number,
-    default: 1,
-    min: 1
-  }
 });
 
 // Indexes
@@ -116,11 +101,6 @@ gameSchema.pre('save', function(next) {
   next();
 });
 
-// Virtual for game duration
-gameSchema.virtual('duration').get(function() {
-  const end = this.endedAt || new Date();
-  return Math.round((end - this.startedAt) / 1000 / 60); // minutes
-});
 
 // Method to shuffle library
 gameSchema.methods.shuffleLibrary = function() {
