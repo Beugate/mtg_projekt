@@ -1,0 +1,181 @@
+.deck-manager-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.deck-manager {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.deck-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #333;
+}
+
+.deck-manager-header h2 {
+  color: #e0e0e0;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.deck-manager-tabs {
+  display: flex;
+  border-bottom: 1px solid #333;
+}
+
+.deck-manager-tabs button {
+  flex: 1;
+  padding: 1rem;
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.deck-manager-tabs button.active {
+  color: #e0e0e0;
+  border-bottom: 2px solid #667eea;
+}
+
+.deck-manager-tabs button:hover {
+  color: #e0e0e0;
+}
+
+.deck-manager-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.deck-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.no-decks {
+  text-align: center;
+  color: #666;
+  padding: 2rem;
+}
+
+.deck-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0d0d0d;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.deck-info h3 {
+  color: #e0e0e0;
+  margin-bottom: 0.25rem;
+}
+
+.deck-info p {
+  color: #888;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.deck-date {
+  color: #666;
+  font-size: 0.8rem;
+}
+
+.deck-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.deck-actions button {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #333;
+  color: #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deck-actions button:hover:not(:disabled) {
+  background: #2a2a2a;
+  border-color: #555;
+}
+
+.deck-actions .delete-btn {
+  color: #ff6b6b;
+  border-color: #dc2626;
+}
+
+.deck-actions .delete-btn:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.save-deck-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.save-deck-form input,
+.save-deck-form textarea {
+  background: #0d0d0d;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 0.75rem;
+  color: #e0e0e0;
+  font-size: 1rem;
+}
+
+.save-deck-form input:focus,
+.save-deck-form textarea:focus {
+  outline: none;
+  border-color: #555;
+}
+
+.save-deck-form button {
+  padding: 0.75rem;
+  background: transparent;
+  border: 1px solid #333;
+  color: #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.save-deck-form button:hover:not(:disabled) {
+  background: #2a2a2a;
+  border-color: #555;
+}
+
+.save-deck-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -803,4 +803,80 @@ img {
     height: auto;
     gap: 0.5rem;
   }
+
+  /* User info and app header */
+.user-info {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  color: #888;
+}
+
+.user-info button {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #333;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-info button:hover {
+  border-color: #555;
+  color: #e0e0e0;
+}
+
+.app-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: #1a1a1a;
+  border-bottom: 1px solid #333;
+  color: #888;
+}
+
+.app-header button {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #333;
+  color: #888;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.app-header button:hover {
+  border-color: #555;
+  color: #e0e0e0;
+}
+
+.start-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.start-buttons button {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  background: transparent;
+  color: #e0e0e0;
+  border: 1px solid #333;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.start-buttons button:hover:not(:disabled) {
+  background: #1a1a1a;
+  border-color: #555;
+}
 }

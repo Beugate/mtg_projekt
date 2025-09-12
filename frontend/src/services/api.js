@@ -98,7 +98,68 @@ const api = {
       deckList
     });
     return response.data;
+  },
+
+
+  setAuthToken: (token) => {
+  if (token) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete axios.defaults.headers.common['Authorization'];
   }
+},
+
+// Auth endpoints
+// Update the register function - NO EMAIL
+register: async (username, password) => {
+  const response = await axios.post(`${API_URL}/auth/register`, {
+    username,
+    password
+  });
+  return response.data;
+},
+
+login: async (username, password) => {
+  const response = await axios.post(`${API_URL}/auth/login`, {
+    username,
+    password
+  });
+  return response.data;
+},
+
+// Deck endpoints
+getMyDecks: async () => {
+  const response = await axios.get(`${API_URL}/decks/my-decks`);
+  return response.data;
+},
+
+saveDeck: async (name, cards, description) => {
+  const response = await axios.post(`${API_URL}/decks/save`, {
+    name,
+    cards,
+    description
+  });
+  return response.data;
+},
+
+loadDeck: async (deckId) => {
+  const response = await axios.get(`${API_URL}/decks/${deckId}`);
+  return response.data;
+},
+
+updateDeck: async (deckId, name, cards, description) => {
+  const response = await axios.put(`${API_URL}/decks/${deckId}`, {
+    name,
+    cards,
+    description
+  });
+  return response.data;
+},
+
+deleteDeck: async (deckId) => {
+  const response = await axios.delete(`${API_URL}/decks/${deckId}`);
+  return response.data;
+}
 };
 
 export default api;

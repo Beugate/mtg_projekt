@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import gameRoutes from './routes/gameRoutes.js';
+import authRoutes from './routes/authRoutes.js';  // ADD THIS
+import deckRoutes from './routes/deckRoutes.js';  // ADD THIS
 
 dotenv.config();
 
@@ -15,6 +17,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/games', gameRoutes);
+app.use('/api/auth', authRoutes);   // ADD THIS
+app.use('/api/decks', deckRoutes);  // ADD THIS
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mtg-sandbox', {

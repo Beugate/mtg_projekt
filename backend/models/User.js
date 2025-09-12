@@ -7,13 +7,8 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
     trim: true,
-    minlength: 3
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true
+    minlength: 3,
+    lowercase: true  // Make usernames case-insensitive
   },
   password: {
     type: String,
@@ -23,11 +18,6 @@ const userSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  },
-  stats: {
-    gamesPlayed: { type: Number, default: 0 },
-    totalWins: { type: Number, default: 0 },
-    totalLosses: { type: Number, default: 0 }
   }
 });
 
@@ -38,7 +28,7 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
-// Check password
+// Check password method
 userSchema.methods.checkPassword = async function(password) {
   return await bcrypt.compare(password, this.password);
 };

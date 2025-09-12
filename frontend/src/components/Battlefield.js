@@ -173,7 +173,6 @@ const Battlefield = ({ cards, gameId, onUpdate }) => {
     >
       <div className="battlefield-header">
         <span>Battlefield</span>
-        <span className="battlefield-hint">Drag to move • Right-click for menu • Double-click to tap</span>
       </div>
       {localCards.map((card) => (
         <BattlefieldCard

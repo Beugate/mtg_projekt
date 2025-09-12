@@ -1,62 +1,87 @@
 import React, { useState } from 'react';
 import api from '../services/api';
+import './Login.css';
 
 const Login = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: '',
-    email: '',
     password: ''
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
     try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const response = await api.post(endpoint, formData);
+      let response;
+      if (isLogin) {
+        response = await api.login(formData.username, formData.password);
+      } else {
+        // Register - no email needed
+        response = await api.register(formData.username, formData.password);
+      }
       
-      // Save token
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      // Save token and user info
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
       
-      onLogin(response.data.user);
+      // Set token for future requests
+      api.setAuthToken(response.token);
+      
+      // Call parent component's login handler
+      onLogin(response.user);
     } catch (error) {
-      alert(error.response?.data?.error || 'Error occurred');
+      setError(error.response?.data?.error || 'An error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="login-form">
-      <h2>{isLogin ? 'Login' : 'Register'}</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={formData.username}
-          onChange={(e) => setFormData({...formData, username: e.target.value})}
-          required
-        />
-        {!isLogin && (
+    <div className="login-container">
+      <div className="login-box">
+        <h2>{isLogin ? 'Login' : 'Create Account'}</h2>
+        {error && <div className="error-message">{error}</div>}
+        <form onSubmit={handleSubmit}>
           <input
-            type="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={(e) => setFormData({...formData, email: e.target.value})}
+            type="text"
+            placeholder="Username"
+            value={formData.username}
+            onChange={(e) => setFormData({...formData, username: e.target.value})}
             required
+            minLength="3"
+            autoComplete="username"
           />
-        )}
-        <input
-          type="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={(e) => setFormData({...formData, password: e.target.value})}
-          required
-        />
-        <button type="submit">{isLogin ? 'Login' : 'Register'}</button>
-      </form>
-      <button onClick={() => setIsLogin(!isLogin)}>
-        {isLogin ? 'Need to register?' : 'Already have an account?'}
-      </button>
+          <input
+            type="password"
+            placeholder="Password (min 6 characters)"
+            value={formData.password}
+            onChange={(e) => setFormData({...formData, password: e.target.value})}
+            required
+            minLength="6"
+            autoComplete={isLogin ? "current-password" : "new-password"}
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? 'Loading...' : (isLogin ? 'Login' : 'Register')}
+          </button>
+        </form>
+        <button 
+          className="switch-btn" 
+          onClick={() => {
+            setIsLogin(!isLogin);
+            setError('');
+          }}
+          disabled={loading}
+        >
+          {isLogin ? 'Need an account? Register' : 'Have an account? Login'}
+        </button>
+      </div>
     </div>
   );
 };
+
+export default Login;
