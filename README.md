@@ -1,1 +1,1 @@
-deployana verzija ne funkcionira korektno
+deployana verzija radi?
